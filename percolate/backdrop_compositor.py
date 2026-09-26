@@ -137,6 +137,22 @@ def composite_backdrop(data: dict, tier_by_slot: dict[str, int] | None = None) -
     return Content("\n").join(rows)
 
 
+def composite_weather(backdrop: Content, weather: dict | object) -> Content:
+    """Paint a weather condition's ASCII overlays over an existing backdrop."""
+    overlays = weather.get("overlays", ()) if isinstance(weather, dict) else weather.overlays
+    rows = backdrop.split("\n")
+    for overlay in overlays:
+        row = int(overlay["row"])
+        col = int(overlay.get("col", 0))
+        if 0 <= row < len(rows):
+            piece = Content(overlay["text"])
+            color = overlay.get("color") or (weather.get("color") if isinstance(weather, dict) else weather.color)
+            if color:
+                piece = piece.stylize(color)
+            rows[row] = _paste(rows[row], piece, col)
+    return Content("\n").join(rows)
+
+
 def _paste(base_row: Content, piece: Content, col: int) -> Content:
     """Overwrite base_row's cells [col, col+len(piece)) with piece."""
     result = base_row[:col]

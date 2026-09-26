@@ -1,0 +1,34 @@
+{
+  "highland_estate": {
+    "id": "highland_estate",
+    "name": "Highland Estate",
+    "description": "Cool mountain air, steady rain, and careful slopes.",
+    "growth_speed_bonus": 0.05,
+    "quality_modifier": 0.04,
+    "weather": ["clear", "drizzle", "cool_snap"]
+  },
+  "tropical_lowland": {
+    "id": "tropical_lowland",
+    "name": "Tropical Lowland",
+    "description": "Warm, humid ground that pushes plants toward faster growth.",
+    "growth_speed_bonus": 0.12,
+    "quality_modifier": -0.03,
+    "weather": ["clear", "rain", "humid_heat"]
+  },
+  "volcanic_island": {
+    "id": "volcanic_island",
+    "name": "Volcanic Island",
+    "description": "Rich dark soil and bright days shaped by an island climate.",
+    "growth_speed_bonus": 0.02,
+    "quality_modifier": 0.09,
+    "weather": ["clear", "ash_haze", "storm"]
+  },
+  "dry_mountain_valley": {
+    "id": "dry_mountain_valley",
+    "name": "Dry Mountain Valley",
+    "description": "Clear skies and lean conditions reward patient cultivation.",
+    "growth_speed_bonus": -0.06,
+    "quality_modifier": 0.12,
+    "weather": ["clear", "drought", "cloudburst"]
+  }
+}

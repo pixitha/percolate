@@ -1,23 +1,142 @@
 {
+  "typica": {
+    "id": "typica",
+    "name": "Typica",
+    "growth_time": 2700,
+    "seed_cost": 6,
+    "raw_sell_value": 10,
+    "species": "arabica",
+    "lineage": "foundational_arabica",
+    "traits": {
+      "quality_modifier": 0.05
+    },
+    "location_modifiers": {
+      "highland_estate": {"quality_modifier": 0.03},
+      "dry_mountain_valley": {"growth_speed_bonus": -0.02, "quality_modifier": 0.04}
+    }
+  },
+  "caturra": {
+    "id": "caturra",
+    "name": "Caturra",
+    "growth_time": 1800,
+    "seed_cost": 5,
+    "raw_sell_value": 7,
+    "species": "arabica",
+    "lineage": "bourbon_mutation",
+    "traits": {
+      "quality_modifier": -0.1,
+      "disease_resistance": 0.2
+    }
+  },
   "bourbon": {
     "id": "bourbon",
     "name": "Bourbon",
-    "growth_time": 10800,
+    "growth_time": 3600,
     "seed_cost": 8,
-    "raw_sell_value": 14
+    "raw_sell_value": 14,
+    "species": "arabica",
+    "lineage": "bourbon",
+    "traits": {
+      "yield_bonus": 0.25
+    },
+    "location_modifiers": {
+      "tropical_lowland": {"growth_speed_bonus": 0.03},
+      "volcanic_island": {"quality_modifier": 0.03}
+    }
   },
   "yirgacheffe": {
     "id": "yirgacheffe",
     "name": "Yirgacheffe",
-    "growth_time": 14400,
+    "growth_time": 7200,
     "seed_cost": 16,
-    "raw_sell_value": 28
+    "raw_sell_value": 30,
+    "species": "arabica",
+    "lineage": "ethiopian_regional",
+    "traits": {
+      "quality_modifier": 0.1
+    }
+  },
+  "robusta": {
+    "id": "robusta",
+    "name": "Robusta",
+    "growth_time": 3000,
+    "seed_cost": 7,
+    "raw_sell_value": 13,
+    "species": "robusta",
+    "lineage": "canephora",
+    "unlock": {
+      "upgrade": "soil_quality",
+      "tier": 1
+    },
+    "traits": {
+      "quality_modifier": -0.2,
+      "yield_bonus": 0.35,
+      "disease_resistance": 1.0
+    }
+  },
+  "catimor": {
+    "id": "catimor",
+    "name": "Catimor",
+    "growth_time": 2400,
+    "seed_cost": 12,
+    "raw_sell_value": 20,
+    "species": "interspecific_hybrid",
+    "lineage": "timor_caturra",
+    "unlock": {
+      "upgrade": "plot_expansion",
+      "tier": 1
+    },
+    "traits": {
+      "quality_modifier": -0.05,
+      "disease_resistance": 0.8
+    }
+  },
+  "sl28": {
+    "id": "sl28",
+    "name": "SL28",
+    "growth_time": 14400,
+    "seed_cost": 28,
+    "raw_sell_value": 58,
+    "species": "arabica",
+    "lineage": "kenyan_selection",
+    "unlock": {
+      "upgrade": "plot_expansion",
+      "tier": 1
+    },
+    "traits": {
+      "quality_modifier": 0.15
+    }
   },
   "geisha": {
     "id": "geisha",
     "name": "Geisha",
-    "growth_time": 21600,
+    "growth_time": 28800,
     "seed_cost": 35,
-    "raw_sell_value": 65
+    "raw_sell_value": 100,
+    "species": "arabica",
+    "lineage": "ethiopian_selection",
+    "unlock": {
+      "upgrade": "roaster_slot",
+      "tier": 1
+    },
+    "traits": {
+      "quality_modifier": 0.25
+    }
+  },
+  "liberica": {
+    "id": "liberica",
+    "name": "Liberica",
+    "growth_time": 43200,
+    "seed_cost": 75,
+    "raw_sell_value": 180,
+    "species": "liberica",
+    "lineage": "barako_liberica",
+    "unlock": {
+      "upgrade": "infuser",
+      "tier": 1
+    },
+    "traits": {
+      "quality_modifier": 0.05
+    }
   }
 }

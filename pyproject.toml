@@ -12,6 +12,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+]
 # patchelf pinned separately from the OS package: Alpine ships 0.18.0, which
 # Nuitka hard-rejects as a known-buggy release on non-Debian/Fedora/SUSE
 # distros; this PyPI build ships a working prebuilt musl binary instead. It's

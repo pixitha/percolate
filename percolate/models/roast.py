@@ -13,7 +13,7 @@ from __future__ import annotations
 import json
 from dataclasses import asdict, dataclass, field
 
-from percolate.config import INGREDIENTS_PATH, RECIPES_PATH, ROAST_BASE_MULTIPLIER, ROAST_STAGES_PATH
+from percolate.config import INGREDIENTS_PATH, RECIPES_PATH, ROAST_BASE_MULTIPLIER
 from percolate.models.bean import Bean
 from percolate.models.timed_process import TimedProcess
 
@@ -82,15 +82,6 @@ def load_recipe_registry(path=RECIPES_PATH) -> dict[str, Recipe]:
     return {r_id: Recipe.from_dict(entry) for r_id, entry in raw.items()}
 
 
-def load_roast_stage_art(path=ROAST_STAGES_PATH) -> dict[str, list[list[str]]]:
-    """Fixed-canvas ASCII art for the roaster, keyed by state ("idle" through
-    "ready"). Each state is a short list of near-identical frames (steam wisp
-    position differs) so RoastScreen can alternate them for ambient motion
-    without ever changing the cell's size — same technique as plant_stages."""
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-
 def _generated_name(bean: Bean, ingredients: list[Ingredient], roast_level: str) -> str:
     parts = [bean.name, roast_level.title()]
     if ingredients:
@@ -103,8 +94,13 @@ def resolve_roast(
     ingredients: list[Ingredient],
     roast_level: str,
     recipes: dict[str, Recipe],
+    extra_quality_modifier: float = 0.0,
 ) -> RoastResult:
-    base_value = bean.raw_sell_value * ROAST_BASE_MULTIPLIER + sum(i.value for i in ingredients)
+    quality_modifier = bean.traits.get("quality_modifier", 0.0) + extra_quality_modifier
+    base_value = (
+        bean.raw_sell_value * (1 + quality_modifier) * ROAST_BASE_MULTIPLIER
+        + sum(i.value for i in ingredients)
+    )
 
     ingredient_ids = [i.id for i in ingredients]
     for recipe in recipes.values():

@@ -19,23 +19,65 @@ Grab the latest build for your OS from the [Releases](../../releases) page — n
 | `h` | Help |
 | `q` | Quit (saves automatically) |
 
-Control hints are shown inline, next to whatever they act on — e.g. the selected plot shows `(enter) plant`, a finished roast shows `(c)`, and each screen's tint bar shows `(u) Upgrades`. `u` opens a contextual upgrade shop for that screen (Farm Upgrades vs. Roaster Upgrades). On the Market screen, Tab moves focus between the four buy/sell lists and Enter acts on the highlighted row.
+Control hints are shown inline, next to whatever they act on — e.g. the selected plot shows `(enter) plant`, a finished roast shows `(c)`, and the Farm and Roasting screens show `(u) Upgrades`. `u` opens a contextual upgrade shop for that screen (Farm Upgrades vs. Roaster Upgrades). On the Market screen, Tab moves focus between the four buy/sell lists and Enter acts on the highlighted row.
 
 Progress is saved to `~/.config/percolate/state.json` after every action.
 
 ## The loop
 
 1. **Buy seeds** at the Market with starting gold.
-2. **Plant and grow** them on the Farm screen — each plot runs its own multi-hour timer with ASCII growth stages (seed → sprout → growing → ready).
+2. **Plant and grow** them on the Farm screen — Caturra is ready in about 30 minutes, while later varieties support longer check-ins and overnight growing.
 3. **Harvest and sell raw beans**, or save up for the Roaster upgrade to unlock roasting.
 4. **Roast** harvested beans — choose a bean, optional flavor ingredients, and a roast level; Discover curated combinations and you'll earn a bonus over their base value.
 5. **Sell roasted product** at the Market for more than raw beans, and reinvest in upgrades (more plots, faster growth, more roast slots, more flavor slots).
 
-Your farmhouse backdrop on the Farm screen evolves automatically as you unlock upgrades.
+### Choose a home region
+
+On a new game, choose one of four regions. The choice is saved with your game and sets both the farm's starting atmosphere and its gameplay modifiers:
+
+| Region | Effect |
+| --- | --- |
+| Highland Estate | +5% growth, +4% quality |
+| Tropical Lowland | +12% growth, -3% quality |
+| Volcanic Island | +2% growth, +9% quality |
+| Dry Mountain Valley | -6% growth, +12% quality |
+
+The Farm screen uses a distinct palette for each region:
+
+<table>
+  <tr>
+    <td align="center"><strong>Highland Estate</strong><br><img src="screenshots/farm-highland_estate.svg" alt="Highland Estate Farm screen" width="420"></td>
+    <td align="center"><strong>Tropical Lowland</strong><br><img src="screenshots/farm-tropical_lowland.svg" alt="Tropical Lowland Farm screen" width="420"></td>
+  </tr>
+  <tr>
+    <td align="center"><strong>Volcanic Island</strong><br><img src="screenshots/farm-volcanic_island.svg" alt="Volcanic Island Farm screen" width="420"></td>
+    <td align="center"><strong>Dry Mountain Valley</strong><br><img src="screenshots/farm-dry_mountain_valley.svg" alt="Dry Mountain Valley Farm screen" width="420"></td>
+  </tr>
+</table>
+
+Some bean varieties also prefer particular regions. For example, Bourbon grows faster in the Tropical Lowland, while Typica and Bourbon gain quality in the Highland Estate or Volcanic Island. The active region changes the Farm palette automatically.
+
+Bean varieties are inspired by real coffee cultivars and species. Typica, Caturra, Bourbon, and Yirgacheffe start available; Soil Quality unlocks Robusta; Plot Expansion unlocks Catimor and SL28; the first Roaster unlocks Geisha; and the first Infuser unlocks Liberica. Bean traits contribute to roast quality, and the catalog also carries yield, disease-resistance, and lineage data for future systems.
+
+Reference design guide: [List of coffee varieties](https://en.wikipedia.org/wiki/List_of_coffee_varieties).
+
+Your farmhouse backdrop on the Farm screen evolves automatically as you unlock plot expansions and other upgrades.
 
 ## Theme
 
-Percolate ships two custom warm coffee-roastery color themes — `percolate-latte` (default, softer/lighter) and `percolate-mocha` (darker, more saturated). Both are dark themes — neither is a bright/light theme. Switch between them, or any other built-in Textual theme, from the command palette (`ctrl+p`).
+Percolate ships two custom warm coffee-roastery color themes — `percolate-latte` (default, softer/lighter) and `percolate-mocha` (darker, more saturated). Both are dark themes — neither is a bright/light theme. The active region supplies a matching palette on startup. You can switch between the region palette, the two coffee themes, or any other built-in Textual theme from the command palette (`ctrl+p`).
+
+## Progression
+
+Upgrades are purchased from the contextual shop on the Farm or Roasting screen:
+
+- **Plot Expansion** adds planting plots and unlocks Catimor and SL28.
+- **Soil Quality** speeds up new plantings and unlocks Robusta.
+- **Roaster** unlocks roasting; its second tier adds another simultaneous roast slot and unlocks Geisha.
+- **Roaster Efficiency** shortens roast times.
+- **Infuser** unlocks flavor ingredients, then increases the number of flavors allowed in a roast; its first tier unlocks Liberica.
+
+Every bean, ingredient, and roast level combination is valid. Matching one of the curated recipes gives the product a special name and a value bonus; undiscovered recipes remain hidden in the Roasting screen's recipe log.
 
 ## Development
 
@@ -50,6 +92,27 @@ or, without installing:
 
 ```bash
 python -m percolate.main
+```
+
+### Running tests
+
+Install the development dependencies and run the model tests with:
+
+```bash
+pip install -e ".[dev]"
+python -m pytest
+```
+
+The test suite covers the UI-independent game rules: timed growth, plots,
+buying and selling, roasting, recipes, upgrades, region modifiers, registries,
+state persistence, themes, and smoke-level app behavior. The gameplay engine
+uses a data-driven content catalog and an injectable clock, so rules can be
+tested without depending on terminal size or wall-clock time.
+
+To capture deterministic headless Farm screenshots for every location palette:
+
+```bash
+python tools/capture_location_screenshots.py /tmp/percolate-location-shots
 ```
 
 ### Dev mode

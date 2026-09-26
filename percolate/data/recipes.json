@@ -70,5 +70,45 @@
     "ingredients": ["caramel", "hazelnut"],
     "roast_level": "medium",
     "bonus_multiplier": 1.55
+  },
+  "sl28_cardamom": {
+    "id": "sl28_cardamom",
+    "name": "SL28 Cardamom Bloom",
+    "bean": "sl28",
+    "ingredients": [
+      "cardamom"
+    ],
+    "roast_level": "light",
+    "bonus_multiplier": 1.8
+  },
+  "robusta_chocolate": {
+    "id": "robusta_chocolate",
+    "name": "Robusta Chocolate Crema",
+    "bean": "robusta",
+    "ingredients": [
+      "chocolate"
+    ],
+    "roast_level": "dark",
+    "bonus_multiplier": 1.9
+  },
+  "geisha_vanilla": {
+    "id": "geisha_vanilla",
+    "name": "Geisha Vanilla Silk",
+    "bean": "geisha",
+    "ingredients": [
+      "vanilla"
+    ],
+    "roast_level": "medium",
+    "bonus_multiplier": 1.7
+  },
+  "liberica_chocolate": {
+    "id": "liberica_chocolate",
+    "name": "Liberica Chocolate Reserve",
+    "bean": "liberica",
+    "ingredients": [
+      "chocolate"
+    ],
+    "roast_level": "dark",
+    "bonus_multiplier": 1.6
   }
 }

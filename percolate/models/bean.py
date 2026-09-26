@@ -8,9 +8,9 @@ and the Farm screen's state-tier color, not unique art per variety.
 from __future__ import annotations
 
 import json
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 
-from percolate.config import BEANS_PATH, PLANT_STAGES_PATH
+from percolate.config import BEANS_PATH
 
 # Growth is split into named stages for ASCII display purposes. Thresholds
 # are fractions of total growth progress (see TimedProcess.progress).
@@ -29,6 +29,11 @@ class Bean:
     growth_time: float  # seconds
     seed_cost: int
     raw_sell_value: int
+    unlock: dict | None = None
+    species: str = "arabica"
+    lineage: str | None = None
+    traits: dict[str, float] = field(default_factory=dict)
+    location_modifiers: dict[str, dict[str, float]] = field(default_factory=dict)
 
     def stage_for_progress(self, progress: float) -> str:
         """Return the plant-stage key for a growth progress fraction."""
@@ -49,6 +54,11 @@ class Bean:
             growth_time=data["growth_time"],
             seed_cost=data["seed_cost"],
             raw_sell_value=data["raw_sell_value"],
+            unlock=data.get("unlock"),
+            species=data.get("species", "arabica"),
+            lineage=data.get("lineage"),
+            traits=dict(data.get("traits", {})),
+            location_modifiers=dict(data.get("location_modifiers", {})),
         )
 
 
@@ -56,14 +66,3 @@ def load_bean_registry(path=BEANS_PATH) -> dict[str, Bean]:
     with open(path, "r", encoding="utf-8") as f:
         raw = json.load(f)
     return {bean_id: Bean.from_dict(entry) for bean_id, entry in raw.items()}
-
-
-def load_plant_stage_art(path=PLANT_STAGES_PATH) -> dict[str, list[str]]:
-    """Shared, fixed-canvas, bottom-anchored ASCII art per growth stage.
-
-    Each stage is a list of equal-length rows (Rich markup included) with a
-    soil baseline as the last row, so a plot's cell size never changes as
-    the plant grows through stages.
-    """
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)

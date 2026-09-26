@@ -6,18 +6,15 @@ from textual.app import App
 
 from percolate.backdrop_compositor import load_farmhouse_data
 from percolate.config import DEV_MODE, PACKAGE_DIR, UI_TICK_SECONDS
-from percolate.models.bean import load_bean_registry, load_plant_stage_art
-from percolate.models.farm import Farm, load_upgrades_data
-from percolate.models.roast import (
-    load_ingredient_registry,
-    load_recipe_registry,
-    load_roast_stage_art,
-)
+from percolate.content.art import load_plant_stage_art, load_roast_stage_art
+from percolate.content.catalog import ContentCatalog
+from percolate.engine.game import GameEngine
 from percolate.screens.farm_screen import FarmScreen
 from percolate.screens.help_modal import HelpModal
+from percolate.screens.location_modal import LocationChoiceModal
 from percolate.screens.market_screen import MarketScreen
 from percolate.screens.roast_screen import RoastScreen
-from percolate.theme import PERCOLATE_LATTE, PERCOLATE_THEMES
+from percolate.theme import ALL_THEMES, theme_for_location
 
 
 class PercolateApp(App):
@@ -45,17 +42,14 @@ class PercolateApp(App):
 
     def __init__(self) -> None:
         super().__init__()
-        for theme in PERCOLATE_THEMES:
+        for theme in ALL_THEMES:
             self.register_theme(theme)
-        self.theme = PERCOLATE_LATTE.name
-        self.beans = load_bean_registry()
+        self.content = ContentCatalog.load_default()
+        self.engine = GameEngine.load_default(content=self.content)
+        self.theme = theme_for_location(self.engine.state.location_id)
         self.plant_stages = load_plant_stage_art()
         self.farmhouse_data = load_farmhouse_data()
-        self.ingredients = load_ingredient_registry()
-        self.recipes = load_recipe_registry()
         self.roast_stages = load_roast_stage_art()
-        self.upgrades_data = load_upgrades_data()
-        self.farm: Farm = Farm.load_from_disk()
 
         if DEV_MODE:
             self.bind("right_square_bracket", "dev_skip_small", description="Dev: +15m")
@@ -65,10 +59,21 @@ class PercolateApp(App):
     def on_mount(self) -> None:
         self.push_screen("farm")
         self.update_subtitle()
+        if not self.engine.state.location_selected:
+            self.push_screen(LocationChoiceModal(), self._finish_location_choice)
         self.set_interval(UI_TICK_SECONDS, self.update_subtitle)
 
+    def _finish_location_choice(self, location_id: str | None) -> None:
+        if location_id is None:
+            return
+        self.engine.set_location(location_id)
+        self.engine.save()
+        self.update_subtitle()
+        self.notify(f"Home region: {self.engine.location.name}")
+
     def update_subtitle(self) -> None:
-        self.sub_title = f"{self.farm.gold}g"
+        self.theme = theme_for_location(self.engine.state.location_id)
+        self.sub_title = f"{self.engine.state.gold}g"
 
     def action_show_screen(self, name: str) -> None:
         self.switch_screen(name)
@@ -77,7 +82,7 @@ class PercolateApp(App):
         self.push_screen(HelpModal())
 
     def action_quit(self) -> None:
-        self.farm.save_to_disk()
+        self.engine.save()
         self.exit()
 
     # --- Dev tools (PERCOLATE_DEV=1 only) --------------------------------
@@ -91,20 +96,20 @@ class PercolateApp(App):
             screen.refresh_batches()
 
     def action_dev_skip_small(self) -> None:
-        self.farm.debug_advance_time(15 * 60)
-        self.farm.save_to_disk()
+        self.engine.advance_debug_time(15 * 60)
+        self.engine.save()
         self._dev_refresh_screen()
         self.notify("Dev: skipped 15 minutes")
 
     def action_dev_skip_large(self) -> None:
-        self.farm.debug_advance_time(6 * 3600)
-        self.farm.save_to_disk()
+        self.engine.advance_debug_time(6 * 3600)
+        self.engine.save()
         self._dev_refresh_screen()
         self.notify("Dev: skipped 6 hours")
 
     def action_dev_add_gold(self) -> None:
-        self.farm.gold += 1000
-        self.farm.save_to_disk()
+        self.engine.state.gold += 1000
+        self.engine.save()
         self.update_subtitle()
         self.notify("Dev: +1000g")
 

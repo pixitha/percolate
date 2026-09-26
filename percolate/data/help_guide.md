@@ -18,6 +18,8 @@ Arrow keys move the plot cursor. **enter** plants a seed (once you own one) or h
 
 **tab** cycles between the four lists (Buy Seeds, Buy Ingredients, Sell Raw Beans, Sell Roasted Products). **enter** buys or sells one unit of whatever's highlighted.
 
+Bean varieties unlock as your farm develops. Typica, Caturra, Bourbon, and Yirgacheffe are available first. Soil Quality unlocks Robusta; Plot Expansion unlocks Catimor and SL28; building a Roaster unlocks Geisha; and the first Infuser unlocks Liberica.
+
 ## Recipes
 
 Any bean, flavor, and roast level you try will make something you can sell — there's no wrong combo. But a few exact combinations are hidden gems: get one right and you'll get a special name and extra gold for it. The recipe log on the right of the Roasting screen shows the ones you've found so far; the rest just show as **???** until you stumble onto them, so it's worth experimenting.

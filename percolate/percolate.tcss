@@ -1,3 +1,21 @@
+/* Keep the application canvas tied to the active Textual theme. This is
+   especially important for exported headless screenshots, where an empty
+   terminal cell otherwise falls back to Rich's black background. */
+Screen {
+    background: $background;
+    color: $foreground;
+}
+
+Header {
+    background: $panel;
+    color: $foreground;
+}
+
+#backdrop_wrap, #backdrop, #field, .tint-bar, .nav-hint {
+    background: $background;
+    color: $foreground;
+}
+
 /* Ambient/state styling for the Farm & Roast screens (overview.md §4).
    Market and Upgrades stay plain — they're utility screens, not the "zen".
 
@@ -77,6 +95,8 @@
 
 .plot-cell {
     border: round grey;
+    background: $surface;
+    color: $foreground;
     width: 21;
     height: 13;
     content-align: center middle;
@@ -194,6 +214,25 @@
     max-height: 24;
     padding: 1 2;
     border: round grey;
+}
+
+#location_picker {
+    width: 86;
+    height: auto;
+    max-height: 28;
+    padding: 1 2;
+    border: round $primary;
+    background: $panel;
+}
+
+#location_picker Label {
+    color: $foreground;
+}
+
+#location_list {
+    height: auto;
+    max-height: 20;
+    margin-top: 1;
 }
 
 /* HelpModal — same bounded-popup idea as #picker, but a guide needs more

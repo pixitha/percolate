@@ -57,14 +57,16 @@ class MarketScreen(Screen):
         await self.refresh_market()
 
     async def refresh_market(self) -> None:
-        farm = self.app.farm
-        beans = self.app.beans
-        ingredients = self.app.ingredients
+        farm = self.app.engine.state
+        beans = self.app.engine.content.beans
+        ingredients = self.app.engine.content.ingredients
 
         buy_seeds = self.query_one("#buy_seeds", ListView)
         buy_seeds_index = buy_seeds.index
         await buy_seeds.clear()
-        self._buy_seed_ids = list(beans.keys())
+        self._buy_seed_ids = [
+            bean_id for bean_id in beans if self.app.engine.is_bean_unlocked(bean_id)
+        ]
         await buy_seeds.extend(
             ListItem(
                 Label(
@@ -86,7 +88,7 @@ class MarketScreen(Screen):
         # nothing to show for it. Hiding the list until unlocked closes off
         # that soft-lock path (#6) rather than letting players buy flavor
         # they can't yet use.
-        if farm.max_ingredients(self.app.upgrades_data) == 0:
+        if self.app.engine.max_ingredients() == 0:
             buy_ingredients_label.update("Buy Ingredients  (locked — need Infuser upgrade)")
             self._buy_ingredient_ids = []
             await buy_ingredients.append(ListItem(Label("— unlock the Infuser upgrade (Roast screen) —")))
@@ -166,35 +168,36 @@ class MarketScreen(Screen):
         list_view.index = min(index, count - 1)
 
     async def on_list_view_selected(self, event: ListView.Selected) -> None:
-        farm = self.app.farm
+        engine = self.app.engine
+        farm = engine.state
         list_id = event.list_view.id
 
         if list_id == "buy_seeds" and self._buy_seed_ids:
             bean_id = self._buy_seed_ids[event.list_view.index]
-            bean = self.app.beans[bean_id]
+            bean = engine.content.beans[bean_id]
             try:
-                farm.buy_seed(bean, 1)
-                farm.save_to_disk()
+                engine.buy_seed(bean_id, 1)
+                engine.save()
                 self.notify(f"Bought {bean.name} seed for {bean.seed_cost}g")
             except ValueError as exc:
                 self.notify(str(exc), severity="error")
 
         elif list_id == "buy_ingredients" and self._buy_ingredient_ids:
             ingredient_id = self._buy_ingredient_ids[event.list_view.index]
-            ingredient = self.app.ingredients[ingredient_id]
+            ingredient = engine.content.ingredients[ingredient_id]
             try:
-                farm.buy_ingredient(ingredient, 1)
-                farm.save_to_disk()
+                engine.buy_ingredient(ingredient_id, 1)
+                engine.save()
                 self.notify(f"Bought {ingredient.name} for {ingredient.cost}g")
             except ValueError as exc:
                 self.notify(str(exc), severity="error")
 
         elif list_id == "sell_beans" and self._sell_bean_ids:
             bean_id = self._sell_bean_ids[event.list_view.index]
-            bean = self.app.beans[bean_id]
+            bean = engine.content.beans[bean_id]
             try:
-                farm.sell_raw_bean(bean, 1)
-                farm.save_to_disk()
+                engine.sell_raw(bean_id, 1)
+                engine.save()
                 self.notify(f"Sold {bean.name} for {bean.raw_sell_value}g")
             except ValueError as exc:
                 self.notify(str(exc), severity="error")
@@ -202,8 +205,8 @@ class MarketScreen(Screen):
         elif list_id == "sell_products" and farm.roasted_inventory:
             index = event.list_view.index
             if index < len(farm.roasted_inventory):
-                product = farm.sell_product(index)
-                farm.save_to_disk()
+                product = engine.sell_product(index)
+                engine.save()
                 self.notify(f"Sold {product.name} for {product.value}g")
 
         await self.refresh_market()

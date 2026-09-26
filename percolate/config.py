@@ -28,6 +28,8 @@ DATA_DIR = PACKAGE_DIR / "data"
 BEANS_PATH = DATA_DIR / "beans.json"
 INGREDIENTS_PATH = DATA_DIR / "ingredients.json"
 RECIPES_PATH = DATA_DIR / "recipes.json"
+LOCATIONS_PATH = DATA_DIR / "locations.json"
+WEATHER_PATH = DATA_DIR / "weather.json"
 UPGRADES_PATH = DATA_DIR / "upgrades.json"
 PLANT_STAGES_PATH = DATA_DIR / "plant_stages.json"
 FARMHOUSE_PATH = DATA_DIR / "farmhouse.json"
@@ -40,6 +42,8 @@ HELP_GUIDE_PATH = DATA_DIR / "help_guide.md"
 # loop; no roaster yet — that's the first thing to save up for.
 DEFAULT_STARTING_GOLD = 30
 DEFAULT_PLOT_COUNT = 3
+DEFAULT_UNLOCKED_BEANS = {"typica", "caturra", "bourbon", "yirgacheffe"}
+DEFAULT_LOCATION_ID = "highland_estate"
 
 # --- Roasting ----------------------------------------------------------------
 

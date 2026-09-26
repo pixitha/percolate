@@ -6,6 +6,9 @@ venv/
 build/
 dist/
 .pytest_cache/
-docs/
+.coverage
+docs/*
+!docs/screenshots/
+!docs/screenshots/**
 CLAUDE.md
 .ruff_cache

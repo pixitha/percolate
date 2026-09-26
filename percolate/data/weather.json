@@ -1,0 +1,123 @@
+{
+  "clear": {
+    "id": "clear",
+    "name": "Clear Skies",
+    "description": "Bright, steady growing weather.",
+    "duration": 900,
+    "color": "gold",
+    "overlays": []
+  },
+  "drizzle": {
+    "id": "drizzle",
+    "name": "Mountain Drizzle",
+    "description": "A soft rain settles over the highland plots.",
+    "duration": 600,
+    "growth_speed_bonus": 0.04,
+    "quality_modifier": 0.01,
+    "color": "steel_blue",
+    "overlays": [
+      {"row": 0, "col": 5, "text": "·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·", "color": "steel_blue"},
+      {"row": 1, "col": 8, "text": "|  |  |  |  |  |  |  |  |  |", "color": "steel_blue"},
+      {"row": 2, "col": 3, "text": "·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·", "color": "steel_blue"},
+      {"row": 3, "col": 12, "text": "|  |  |  |  |  |  |  |  |", "color": "steel_blue"}
+    ]
+  },
+  "cool_snap": {
+    "id": "cool_snap",
+    "name": "Cool Snap",
+    "description": "Chilly air slows growth but keeps the cup crisp.",
+    "duration": 600,
+    "growth_speed_bonus": -0.08,
+    "quality_modifier": 0.04,
+    "color": "light_steel_blue",
+    "overlays": [
+      {"row": 0, "col": 18, "text": "*  *  *  *  *  *", "color": "light_steel_blue"},
+      {"row": 2, "col": 55, "text": "*  *  *  *  *", "color": "light_steel_blue"}
+    ]
+  },
+  "rain": {
+    "id": "rain",
+    "name": "Tropical Rain",
+    "description": "Warm rain feeds the lowland canopy.",
+    "duration": 600,
+    "growth_speed_bonus": 0.08,
+    "quality_modifier": -0.01,
+    "color": "cyan",
+    "overlays": [
+      {"row": 0, "col": 2, "text": "/////  /////  /////  /////  /////", "color": "cyan"},
+      {"row": 2, "col": 10, "text": "/////  /////  /////  /////", "color": "cyan"},
+      {"row": 4, "col": 1, "text": "/////  /////  /////  /////  /////", "color": "cyan"}
+    ]
+  },
+  "humid_heat": {
+    "id": "humid_heat",
+    "name": "Humid Heat",
+    "description": "Fast growth, heavy air, and a little less clarity in the cup.",
+    "duration": 600,
+    "growth_speed_bonus": 0.05,
+    "quality_modifier": -0.03,
+    "color": "yellow",
+    "overlays": [
+      {"row": 0, "col": 61, "text": "\\ | /", "color": "yellow"},
+      {"row": 1, "col": 60, "text": "- O -", "color": "yellow"},
+      {"row": 2, "col": 61, "text": "/ | \\", "color": "yellow"}
+    ]
+  },
+  "ash_haze": {
+    "id": "ash_haze",
+    "name": "Ash Haze",
+    "description": "Fine volcanic dust hangs in the warm air.",
+    "duration": 600,
+    "growth_speed_bonus": -0.03,
+    "quality_modifier": 0.05,
+    "color": "dark_orange",
+    "overlays": [
+      {"row": 0, "col": 7, "text": "~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~", "color": "dark_orange"},
+      {"row": 2, "col": 42, "text": "~ ~ ~ ~ ~ ~ ~ ~ ~", "color": "dark_orange"},
+      {"row": 4, "col": 20, "text": "~ ~ ~ ~ ~ ~ ~ ~ ~ ~", "color": "dark_orange"}
+    ]
+  },
+  "storm": {
+    "id": "storm",
+    "name": "Island Storm",
+    "description": "A dramatic storm passes over the volcanic fields.",
+    "duration": 450,
+    "growth_speed_bonus": 0.03,
+    "quality_modifier": 0.02,
+    "color": "slate_blue",
+    "overlays": [
+      {"row": 0, "col": 7, "text": "##############      ##############", "color": "slate_blue"},
+      {"row": 1, "col": 3, "text": "##########  ######  ##########", "color": "slate_blue"},
+      {"row": 3, "col": 28, "text": "\\  |  /       \\  |  /", "color": "yellow"},
+      {"row": 4, "col": 31, "text": "---+---       ---+---", "color": "yellow"}
+    ]
+  },
+  "drought": {
+    "id": "drought",
+    "name": "Dry Spell",
+    "description": "Water is scarce; growth slows while flavors concentrate.",
+    "duration": 750,
+    "growth_speed_bonus": -0.12,
+    "quality_modifier": 0.06,
+    "color": "dark_goldenrod",
+    "overlays": [
+      {"row": 0, "col": 56, "text": "\\ | /", "color": "dark_goldenrod"},
+      {"row": 1, "col": 55, "text": "- O -", "color": "dark_goldenrod"},
+      {"row": 2, "col": 56, "text": "/ | \\", "color": "dark_goldenrod"}
+    ]
+  },
+  "cloudburst": {
+    "id": "cloudburst",
+    "name": "Rare Cloudburst",
+    "description": "A sudden shower breaks the valley's dry routine.",
+    "duration": 450,
+    "growth_speed_bonus": 0.06,
+    "quality_modifier": 0.03,
+    "color": "deep_sky_blue",
+    "overlays": [
+      {"row": 0, "col": 8, "text": "########  ########  ########", "color": "deep_sky_blue"},
+      {"row": 2, "col": 4, "text": "| | | | | | | | | | | |", "color": "deep_sky_blue"},
+      {"row": 4, "col": 14, "text": "| | | | | | | | |", "color": "deep_sky_blue"}
+    ]
+  }
+}

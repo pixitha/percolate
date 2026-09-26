@@ -21,7 +21,6 @@ from __future__ import annotations
 
 import math
 import textwrap
-import time
 
 from textual import events
 from textual.app import ComposeResult
@@ -33,7 +32,7 @@ from textual.widgets.selection_list import Selection
 
 from percolate.config import UI_TICK_SECONDS
 from percolate.focus_widgets import FocusHighlightOptionList, FocusHighlightSelectionList
-from percolate.models.roast import DEFAULT_ROAST_DURATION, resolve_roast
+from percolate.models.roast import resolve_roast
 from percolate.screens.upgrade_modal import UpgradeModal
 from percolate.widgets import NAV_HINT, apply_time_of_day, format_remaining
 
@@ -144,7 +143,9 @@ class RoastScreen(Screen):
         if widget_id == "bean_list":
             bean_list = self.query_one("#bean_list", OptionList)
             owned_bean_ids = [
-                b_id for b_id, count in self.app.farm.raw_bean_inventory.items() if count > 0
+                b_id
+                for b_id, count in self.app.engine.state.raw_bean_inventory.items()
+                if count > 0
             ]
             if self._selected_bean_id in owned_bean_ids:
                 bean_list.highlighted = owned_bean_ids.index(self._selected_bean_id)
@@ -155,9 +156,9 @@ class RoastScreen(Screen):
                 level_list.highlighted = level_ids.index(self._selected_level)
 
     def refresh_builder(self) -> None:
-        farm = self.app.farm
-        beans = self.app.beans
-        ingredients = self.app.ingredients
+        farm = self.app.engine.state
+        beans = self.app.engine.content.beans
+        ingredients = self.app.engine.content.ingredients
 
         bean_list = self.query_one("#bean_list", OptionList)
         bean_list.clear_options()
@@ -174,7 +175,7 @@ class RoastScreen(Screen):
         if bean_list.has_focus:
             self._sync_selection_highlight("bean_list")
 
-        max_flavors = farm.max_ingredients(self.app.upgrades_data)
+        max_flavors = self.app.engine.max_ingredients()
         flavor_heading = self.query_one("#flavor_heading", Label)
         if max_flavors == 0:
             flavor_heading.update("Flavor (need Infuser — u)")
@@ -195,7 +196,7 @@ class RoastScreen(Screen):
 
     def on_selection_list_selection_toggled(self, event: SelectionList.SelectionToggled) -> None:
         flavor_list = event.selection_list
-        max_flavors = self.app.farm.max_ingredients(self.app.upgrades_data)
+        max_flavors = self.app.engine.max_ingredients()
         if event.selection.value in flavor_list.selected and len(flavor_list.selected) > max_flavors:
             flavor_list.deselect(event.selection.value)
             if max_flavors == 0:
@@ -205,7 +206,7 @@ class RoastScreen(Screen):
 
     def _current_ingredients(self) -> list:
         flavor_list = self.query_one("#flavor_list", SelectionList)
-        return [self.app.ingredients[i] for i in flavor_list.selected]
+        return [self.app.engine.content.ingredients[i] for i in flavor_list.selected]
 
     def _update_status(self) -> None:
         status = self.query_one("#builder_status", Label)
@@ -216,9 +217,11 @@ class RoastScreen(Screen):
             status.update("Choose a roast level.")
             return
 
-        bean = self.app.beans[self._selected_bean_id]
+        bean = self.app.engine.content.beans[self._selected_bean_id]
         ingredients = self._current_ingredients()
-        preview = resolve_roast(bean, ingredients, self._selected_level, self.app.recipes)
+        preview = resolve_roast(
+            bean, ingredients, self._selected_level, self.app.engine.content.recipes
+        )
         flavor = ", ".join(i.name for i in ingredients) or "plain"
         discovered = "✓ curated" if preview.recipe_id else ""
         status.update(
@@ -241,14 +244,15 @@ class RoastScreen(Screen):
             self.action_start_roast()
 
     def action_start_roast(self) -> None:
-        farm = self.app.farm
+        engine = self.app.engine
+        farm = engine.state
         if self._selected_bean_id is None:
             self.notify("Choose a bean first.", severity="warning")
             return
         if self._selected_level is None:
             self.notify("Choose a roast level first.", severity="warning")
             return
-        capacity = farm.max_roast_slots(self.app.upgrades_data)
+        capacity = engine.max_roast_slots()
         if capacity == 0:
             self.notify("No roaster yet — buy one from Upgrades (u).", severity="warning")
             return
@@ -256,13 +260,15 @@ class RoastScreen(Screen):
             self.notify("All roaster slots are busy.", severity="warning")
             return
 
-        bean = self.app.beans[self._selected_bean_id]
+        bean = engine.content.beans[self._selected_bean_id]
         ingredients = self._current_ingredients()
-        bonus = farm.roast_speed_bonus(self.app.upgrades_data)
-        duration = DEFAULT_ROAST_DURATION * (1 - bonus)
         try:
-            farm.start_roast(bean, ingredients, self._selected_level, duration, time.time())
-            farm.save_to_disk()
+            engine.start_roast(
+                self._selected_bean_id,
+                [ingredient.id for ingredient in ingredients],
+                self._selected_level,
+            )
+            engine.save()
             self.notify(f"Roasting {bean.name}...")
         except ValueError as exc:
             self.notify(str(exc), severity="error")
@@ -274,7 +280,7 @@ class RoastScreen(Screen):
     # --- Roaster field (center panel) ------------------------------------
 
     def _capacity(self) -> int:
-        return self.app.farm.max_roast_slots(self.app.upgrades_data)
+        return self.app.engine.max_roast_slots()
 
     def _build_field(self) -> None:
         # Same reasoning as FarmScreen._build_field: a rebuild recreates every
@@ -301,11 +307,11 @@ class RoastScreen(Screen):
             self._paint_cell(index, animate=False)
 
     def _cell_content(self, index: int) -> tuple[str, str]:
-        farm = self.app.farm
-        beans = self.app.beans
-        ingredients = self.app.ingredients
+        farm = self.app.engine.state
+        beans = self.app.engine.content.beans
+        ingredients = self.app.engine.content.ingredients
         roast_stages = self.app.roast_stages
-        now = time.time()
+        now = self.app.engine.now
 
         if index >= len(farm.roast_batches):
             state = "idle"
@@ -319,7 +325,9 @@ class RoastScreen(Screen):
             # _update_status) — shows the curated name if this combo matches
             # a recipe, otherwise the generated "Bean Level Flavor" name, so
             # a slot's label always identifies exactly what's roasting.
-            preview = resolve_roast(bean, batch_ingredients, batch.roast_level, self.app.recipes)
+            preview = resolve_roast(
+                bean, batch_ingredients, batch.roast_level, self.app.engine.content.recipes
+            )
             progress = batch.progress(now)
             is_ready = batch.is_ready(now)
             state = _roast_state(progress, is_ready)
@@ -376,26 +384,25 @@ class RoastScreen(Screen):
         self._build_recipe_list()
 
     def collect_slot(self, index: int) -> None:
-        farm = self.app.farm
+        engine = self.app.engine
+        farm = engine.state
         if index >= len(farm.roast_batches):
             return
-        now = time.time()
+        now = engine.now
         batch = farm.roast_batches[index]
         if not batch.is_ready(now):
             remaining = batch.process.duration - batch.process.elapsed(now)
             self.notify(f"Still roasting — {format_remaining(remaining)} left")
             return
 
-        product = farm.collect_roast(
-            index, self.app.beans, self.app.ingredients, self.app.recipes, now
-        )
-        farm.save_to_disk()
+        product = engine.collect_roast(index)
+        engine.save()
         self.notify(f"Collected: {product.name} ({product.value}g)")
         self.refresh_batches()
 
     def action_collect_ready(self) -> None:
-        now = time.time()
-        for index, batch in enumerate(self.app.farm.roast_batches):
+        now = self.app.engine.now
+        for index, batch in enumerate(self.app.engine.state.roast_batches):
             if batch.is_ready(now):
                 self.collect_slot(index)
                 return
@@ -414,16 +421,18 @@ class RoastScreen(Screen):
     # --- Recipe log (right panel) -----------------------------------------
 
     def _build_recipe_list(self) -> None:
-        recipes = self.app.recipes
-        discovered = self.app.farm.discovered_recipes
+        recipes = self.app.engine.content.recipes
+        discovered = self.app.engine.state.discovered_recipes
         container = self.query_one("#recipe_list", VerticalScroll)
         container.remove_children()
 
         container.mount(Label(f"Discovered {len(discovered)}/{len(recipes)}"))
         for recipe in recipes.values():
             if recipe.id in discovered:
-                bean_name = self.app.beans[recipe.bean].name
-                flavor = ", ".join(self.app.ingredients[i].name for i in recipe.ingredients)
+                bean_name = self.app.engine.content.beans[recipe.bean].name
+                flavor = ", ".join(
+                    self.app.engine.content.ingredients[i].name for i in recipe.ingredients
+                )
                 flavor = flavor or "plain"
                 text = (
                     f"[gold]{recipe.name}[/]\n"

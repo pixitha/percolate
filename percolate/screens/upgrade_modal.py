@@ -57,11 +57,10 @@ class UpgradeModal(ModalScreen[bool]):
         self._update_gold()
 
     def _update_gold(self) -> None:
-        self.query_one("#modal_gold", Label).update(f"{self.app.farm.gold}g")
+        self.query_one("#modal_gold", Label).update(f"{self.app.engine.state.gold}g")
 
     async def refresh_upgrades(self) -> None:
-        farm = self.app.farm
-        upgrades_data = self.app.upgrades_data
+        upgrades_data = self.app.engine.content.upgrades
 
         list_view = self.query_one("#upgrade_list", ListView)
         selected = list_view.index
@@ -71,7 +70,7 @@ class UpgradeModal(ModalScreen[bool]):
         for upgrade_id in self._upgrade_ids:
             upgrade = upgrades_data[upgrade_id]
             tiers = upgrade["tiers"]
-            current_tier = farm.upgrade_tier(upgrade_id)
+            current_tier = self.app.engine.upgrade_tier(upgrade_id)
             if current_tier >= len(tiers):
                 text = f"{upgrade['name']} — MAXED (tier {current_tier})"
             else:
@@ -92,31 +91,21 @@ class UpgradeModal(ModalScreen[bool]):
             list_view.sync_focus_highlight()
 
     async def on_list_view_selected(self, event: ListView.Selected) -> None:
-        farm = self.app.farm
-        upgrades_data = self.app.upgrades_data
+        engine = self.app.engine
+        upgrades_data = engine.content.upgrades
 
         upgrade_id = self._upgrade_ids[event.list_view.index]
-        upgrade = upgrades_data[upgrade_id]
-        tiers = upgrade["tiers"]
-        current_tier = farm.upgrade_tier(upgrade_id)
-
-        if current_tier >= len(tiers):
-            self.notify(f"{upgrade['name']} is already maxed.", severity="warning")
-            return
-
-        next_tier = tiers[current_tier]
         try:
-            farm.apply_upgrade(upgrade_id, next_tier["cost"])
+            engine.purchase_upgrade(upgrade_id)
         except ValueError as exc:
             self.notify(str(exc), severity="error")
             return
 
-        if upgrade_id == "plot_expansion":
-            farm.expand_plots(next_tier["plots_added"])
-
-        farm.save_to_disk()
+        current_tier = engine.upgrade_tier(upgrade_id)
+        upgrade = upgrades_data[upgrade_id]
+        engine.save()
         self._purchased = True
-        self.notify(f"Purchased {upgrade['name']} tier {current_tier + 1}")
+        self.notify(f"Purchased {upgrade['name']} tier {current_tier}")
         await self.refresh_upgrades()
         self._update_gold()
 

@@ -7,15 +7,13 @@ grid, not as a linear list, with arrow-key cursor navigation.
 
 from __future__ import annotations
 
-import time
-
 from textual.app import ComposeResult
 from textual.containers import Grid, ScrollableContainer, Vertical
 from textual.screen import ModalScreen, Screen
 from textual.widgets import Header, Label, OptionList, Static
 from textual.widgets.option_list import Option
 
-from percolate.backdrop_compositor import composite_backdrop, resolve_tiers
+from percolate.backdrop_compositor import composite_backdrop, composite_weather, resolve_tiers
 from percolate.config import UI_TICK_SECONDS
 from percolate.focus_widgets import FocusHighlightOptionList
 from percolate.screens.upgrade_modal import UpgradeModal
@@ -82,7 +80,7 @@ class FarmScreen(Screen):
         yield Header()
         with ScrollableContainer(id="backdrop_wrap", can_focus=False):
             yield Backdrop(id="backdrop")
-        yield Static("(u) Upgrades", id="tint_bar", classes="tint-bar")
+        yield Static("", id="tint_bar", classes="tint-bar")
         yield Grid(id="field")
         yield Static(NAV_HINT, classes="nav-hint")
 
@@ -93,6 +91,7 @@ class FarmScreen(Screen):
         self._cursor = 0
         self._hide_outline = False
         self._build_field()
+        self._update_location_label()
         self.refresh_plots()
         self._render_backdrop()
         self.call_after_refresh(self._center_on_house)
@@ -100,19 +99,33 @@ class FarmScreen(Screen):
         self.set_interval(UI_TICK_SECONDS, self.tick)
 
     def on_screen_resume(self) -> None:
+        self._update_location_label()
         self.refresh_plots()
         self._sync_field_columns()
         self._render_backdrop()
         self.call_after_refresh(self._center_on_house)
 
     def tick(self) -> None:
+        self._update_location_label()
         self.refresh_plots()
         self._sync_field_columns()
+        self._render_backdrop()
         apply_time_of_day(self.query_one("#tint_bar", Static))
 
+    def _update_location_label(self) -> None:
+        self.app.engine.refresh_weather()
+        location = self.app.engine.location
+        weather = self.app.engine.weather
+        self.query_one("#tint_bar", Static).update(
+            f"{location.name}  •  {weather.name}  •  (u) Upgrades"
+        )
+
     def _render_backdrop(self) -> None:
-        tier_by_slot = resolve_tiers(self.app.farmhouse_data, self.app.farm, self.app.upgrades_data)
+        tier_by_slot = resolve_tiers(
+            self.app.farmhouse_data, self.app.engine, self.app.engine.content.upgrades
+        )
         composited = composite_backdrop(self.app.farmhouse_data, tier_by_slot)
+        composited = composite_weather(composited, self.app.engine.weather)
         self.query_one("#backdrop", Backdrop).update(composited)
 
     def _center_on_house(self) -> None:
@@ -135,7 +148,7 @@ class FarmScreen(Screen):
         # showed — each gets painted immediately below, with no fade, rather than
         # carrying over old _last_stage (which would wrongly mark it as "changed"
         # and trigger an animation on a widget that was mounted in this same tick).
-        farm = self.app.farm
+        farm = self.app.engine.state
         grid = self.query_one("#field", Grid)
         grid.remove_children()
 
@@ -223,10 +236,10 @@ class FarmScreen(Screen):
 
     def _cell_content(self, index: int) -> tuple[str, str]:
         """Return (text, state) for a plot index from current farm state."""
-        farm = self.app.farm
-        beans = self.app.beans
+        farm = self.app.engine.state
+        beans = self.app.engine.content.beans
         plant_stages = self.app.plant_stages
-        now = time.time()
+        now = self.app.engine.now
         plot = farm.plots[index]
 
         cursored = index == self._cursor
@@ -283,7 +296,8 @@ class FarmScreen(Screen):
         self._last_stage[index] = art_stage
 
     def refresh_plots(self) -> None:
-        farm = self.app.farm
+        engine = self.app.engine
+        farm = engine.state
         if len(self._cells) != len(farm.plots):
             self._build_field()
 
@@ -293,16 +307,17 @@ class FarmScreen(Screen):
         self._highlight_cursor()
 
     def action_interact(self) -> None:
-        farm = self.app.farm
+        engine = self.app.engine
+        farm = engine.state
         if not farm.plots:
             return
         index = self._cursor
-        now = time.time()
+        now = engine.now
         plot = farm.plots[index]
 
         if plot.is_empty:
             owned_seeds = [
-                (bean_id, f"{self.app.beans[bean_id].name} (own {count})")
+                (bean_id, f"{self.app.engine.content.beans[bean_id].name} (own {count})")
                 for bean_id, count in farm.seed_inventory.items()
                 if count > 0
             ]
@@ -313,20 +328,17 @@ class FarmScreen(Screen):
             def handle_pick(bean_id: str | None, plot_index: int = index) -> None:
                 if bean_id is None:
                     return
-                bean = self.app.beans[bean_id]
-                bonus = farm.growth_speed_bonus(self.app.upgrades_data)
-                growth_time = bean.growth_time * (1 - bonus)
                 try:
-                    farm.plant_bean(plot_index, bean, time.time(), growth_time=growth_time)
-                    farm.save_to_disk()
+                    engine.plant(plot_index, bean_id)
+                    engine.save()
                 except ValueError as exc:
                     self.notify(str(exc), severity="error")
                 self.refresh_plots()
 
             self.app.push_screen(BeanPickerScreen(owned_seeds), handle_pick)
         elif plot.is_ready(now):
-            farm.harvest_plot(index, now)
-            farm.save_to_disk()
+            engine.harvest(index)
+            engine.save()
             self.refresh_plots()
 
     def action_show_upgrades(self) -> None:
