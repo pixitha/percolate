@@ -137,18 +137,27 @@ def composite_backdrop(data: dict, tier_by_slot: dict[str, int] | None = None) -
     return Content("\n").join(rows)
 
 
-def composite_weather(backdrop: Content, weather: dict | object) -> Content:
-    """Paint a weather condition's ASCII overlays over an existing backdrop."""
-    overlays = weather.get("overlays", ()) if isinstance(weather, dict) else weather.overlays
+def composite_weather(backdrop: Content, weather: dict | object, phase: int = 0) -> Content:
+    """Paint weather overlays and the selected animation frame over a backdrop."""
+    if isinstance(weather, dict):
+        overlays = weather.get("overlays", ())
+        frames = weather.get("animation", ())
+        color = weather.get("color")
+    else:
+        overlays = weather.overlays
+        frames = weather.animation_frames
+        color = weather.color
+    if frames:
+        overlays = (*overlays, *frames[phase % len(frames)])
     rows = backdrop.split("\n")
     for overlay in overlays:
         row = int(overlay["row"])
         col = int(overlay.get("col", 0))
         if 0 <= row < len(rows):
             piece = Content(overlay["text"])
-            color = overlay.get("color") or (weather.get("color") if isinstance(weather, dict) else weather.color)
-            if color:
-                piece = piece.stylize(color)
+            overlay_color = overlay.get("color") or color
+            if overlay_color:
+                piece = piece.stylize(overlay_color)
             rows[row] = _paste(rows[row], piece, col)
     return Content("\n").join(rows)
 

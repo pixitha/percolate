@@ -12,13 +12,13 @@ Arrow keys move the plot cursor. **enter** plants a seed (once you own one) or h
 
 ## Roasting
 
-**tab** / **shift+tab** move between Bean, Flavor, and Roast Level; **enter** picks the highlighted one (space also toggles a flavor on or off). Once you like the combo, **s** starts the roast. **c** collects the first ready batch, or click a ready roaster directly. **u** opens Roaster upgrades — you'll need one before you can roast at all, and an Infuser before flavors unlock.
+**tab** / **shift+tab** or **left** / **right** move between Bean, Flavor, and Roast Level; **up** / **down** moves within the focused list; **enter** picks the highlighted one (space also toggles a flavor on or off). Choose a roast level before pressing **s** to start. **c** collects the first ready batch, or click a ready roaster directly. The farm starts with one basic roaster; **u** opens upgrades for more slots and faster roasting. An Infuser unlocks flavors.
 
 ## Market
 
 **tab** cycles between the four lists (Buy Seeds, Buy Ingredients, Sell Raw Beans, Sell Roasted Products). **enter** buys or sells one unit of whatever's highlighted.
 
-Bean varieties unlock as your farm develops. Typica, Caturra, Bourbon, and Yirgacheffe are available first. Soil Quality unlocks Robusta; Plot Expansion unlocks Catimor and SL28; building a Roaster unlocks Geisha; and the first Infuser unlocks Liberica.
+Bean varieties unlock as your farm develops. Typica, Caturra, Bourbon, and Yirgacheffe are available first. Soil Quality unlocks Robusta; Plot Expansion unlocks Catimor and SL28; the first Roaster upgrade unlocks Geisha; and the first Infuser unlocks Liberica.
 
 ## Recipes
 

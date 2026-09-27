@@ -1,10 +1,12 @@
-"""Capture Farm-screen screenshots for every location palette.
+"""Capture one Farm-screen screenshot for every location palette.
 
 Usage:
     python tools/capture_location_screenshots.py /tmp/percolate-location-shots
 
-The app runs headlessly with an in-memory fresh save, so this never touches the
-player's real ~/.config/percolate state.
+The capture set deliberately includes two clear scenes and two storm scenes so
+the artifacts demonstrate both the location palettes and the weather art.
+The app runs headlessly with an in-memory fresh save, so this never touches
+the player's real ~/.config/percolate state.
 """
 
 from __future__ import annotations
@@ -17,6 +19,14 @@ from percolate.engine.state import GameState
 from percolate.main import PercolateApp
 from percolate.persistence.json_store import JsonStateStore
 from percolate.theme import LOCATION_THEMES
+
+
+SCREENSHOT_WEATHER = {
+    "highland_estate": "clear",
+    "dry_mountain_valley": "clear",
+    "tropical_lowland": "rain",
+    "volcanic_island": "storm",
+}
 
 
 def colorize_export(svg: str, location_id: str) -> str:
@@ -66,6 +76,9 @@ async def capture(output_dir: Path) -> None:
             app = pilot.app
             for location_id in app.engine.content.locations:
                 app.engine.set_location(location_id)
+                app.engine.set_weather(SCREENSHOT_WEATHER[location_id])
+                app.screen._update_location_label()
+                app.screen._render_backdrop()
                 app.update_subtitle()
                 await pilot.pause()
                 filename = f"farm-{location_id}.svg"

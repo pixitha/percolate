@@ -14,7 +14,7 @@ from textual.widgets import Header, Label, OptionList, Static
 from textual.widgets.option_list import Option
 
 from percolate.backdrop_compositor import composite_backdrop, composite_weather, resolve_tiers
-from percolate.config import UI_TICK_SECONDS
+from percolate.config import UI_TICK_SECONDS, WEATHER_ANIMATION_TICK_SECONDS
 from percolate.focus_widgets import FocusHighlightOptionList
 from percolate.screens.upgrade_modal import UpgradeModal
 from percolate.widgets import NAV_HINT, apply_time_of_day, format_remaining
@@ -87,6 +87,7 @@ class FarmScreen(Screen):
     def on_mount(self) -> None:
         self._cells: list[PlotCell] = []
         self._last_stage: list[str | None] = []
+        self._weather_phase = 0
         self._columns = 1
         self._cursor = 0
         self._hide_outline = False
@@ -97,6 +98,7 @@ class FarmScreen(Screen):
         self.call_after_refresh(self._center_on_house)
         apply_time_of_day(self.query_one("#tint_bar", Static))
         self.set_interval(UI_TICK_SECONDS, self.tick)
+        self.set_interval(WEATHER_ANIMATION_TICK_SECONDS, self.animate_weather)
 
     def on_screen_resume(self) -> None:
         self._update_location_label()
@@ -112,6 +114,12 @@ class FarmScreen(Screen):
         self._render_backdrop()
         apply_time_of_day(self.query_one("#tint_bar", Static))
 
+    def animate_weather(self) -> None:
+        """Advance only the visual weather layer between gameplay ticks."""
+        if self.app.engine.weather.animation_frames:
+            self._weather_phase += 1
+            self._render_backdrop()
+
     def _update_location_label(self) -> None:
         self.app.engine.refresh_weather()
         location = self.app.engine.location
@@ -125,7 +133,7 @@ class FarmScreen(Screen):
             self.app.farmhouse_data, self.app.engine, self.app.engine.content.upgrades
         )
         composited = composite_backdrop(self.app.farmhouse_data, tier_by_slot)
-        composited = composite_weather(composited, self.app.engine.weather)
+        composited = composite_weather(composited, self.app.engine.weather, self._weather_phase)
         self.query_one("#backdrop", Backdrop).update(composited)
 
     def _center_on_house(self) -> None:

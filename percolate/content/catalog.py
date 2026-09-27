@@ -70,6 +70,7 @@ class Weather:
     quality_modifier: float = 0.0
     color: str = "grey70"
     overlays: tuple[dict, ...] = ()
+    animation_frames: tuple[tuple[dict, ...], ...] = ()
 
     @classmethod
     def from_dict(cls, data: dict) -> "Weather":
@@ -82,6 +83,7 @@ class Weather:
             quality_modifier=data.get("quality_modifier", 0.0),
             color=data.get("color", "grey70"),
             overlays=tuple(data.get("overlays", [])),
+            animation_frames=tuple(tuple(frame) for frame in data.get("animation", [])),
         )
 
 

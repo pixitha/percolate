@@ -55,6 +55,10 @@ class PercolateApp(App):
             self.bind("right_square_bracket", "dev_skip_small", description="Dev: +15m")
             self.bind("left_square_bracket", "dev_skip_large", description="Dev: +6h")
             self.bind("g", "dev_add_gold", description="Dev: +1000g")
+            self.bind("l", "dev_next_location", description="Dev: next location")
+            self.bind("shift+l", "dev_previous_location", description="Dev: previous location")
+            self.bind("w", "dev_next_weather", description="Dev: next weather")
+            self.bind("shift+w", "dev_previous_weather", description="Dev: previous weather")
 
     def on_mount(self) -> None:
         self.push_screen("farm")
@@ -90,10 +94,16 @@ class PercolateApp(App):
     def _dev_refresh_screen(self) -> None:
         # Give immediate feedback rather than waiting for the next 5s tick.
         screen = self.screen
+        if hasattr(screen, "_update_location_label"):
+            screen._update_location_label()
+        if hasattr(screen, "_render_backdrop"):
+            screen._render_backdrop()
         if hasattr(screen, "refresh_plots"):
             screen.refresh_plots()
         if hasattr(screen, "refresh_batches"):
             screen.refresh_batches()
+        if hasattr(screen, "refresh_market"):
+            self.run_worker(screen.refresh_market(), exclusive=False)
 
     def action_dev_skip_small(self) -> None:
         self.engine.advance_debug_time(15 * 60)
@@ -112,6 +122,32 @@ class PercolateApp(App):
         self.engine.save()
         self.update_subtitle()
         self.notify("Dev: +1000g")
+
+    def action_dev_next_location(self) -> None:
+        self.engine.cycle_location()
+        self.engine.save()
+        self._dev_refresh_screen()
+        self.update_subtitle()
+        self.notify(f"Dev: location → {self.engine.location.name}")
+
+    def action_dev_previous_location(self) -> None:
+        self.engine.cycle_location(-1)
+        self.engine.save()
+        self._dev_refresh_screen()
+        self.update_subtitle()
+        self.notify(f"Dev: location → {self.engine.location.name}")
+
+    def action_dev_next_weather(self) -> None:
+        self.engine.cycle_weather()
+        self.engine.save()
+        self._dev_refresh_screen()
+        self.notify(f"Dev: weather → {self.engine.weather.name}")
+
+    def action_dev_previous_weather(self) -> None:
+        self.engine.cycle_weather(-1)
+        self.engine.save()
+        self._dev_refresh_screen()
+        self.notify(f"Dev: weather → {self.engine.weather.name}")
 
 
 def main() -> None:

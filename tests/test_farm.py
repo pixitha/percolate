@@ -53,8 +53,7 @@ def test_seed_plant_harvest_and_sell_loop(engine) -> None:
 
 
 def test_roast_collects_recipe_and_sells_product(engine) -> None:
-    engine.state.gold = 2000
-    engine.purchase_upgrade("roaster_slot")
+    engine.state.gold = 30
     engine.state.raw_bean_inventory["bourbon"] = 1
     engine.state.ingredient_inventory["caramel"] = 1
 
@@ -71,7 +70,7 @@ def test_roast_collects_recipe_and_sells_product(engine) -> None:
     assert engine.state.discovered_recipes == {"bourbon_reserve"}
     assert engine.state.roast_batches == []
     engine.sell_product(0)
-    assert engine.state.gold == 2000 - 1000 + product.value
+    assert engine.state.gold == 30 + product.value
 
 
 def test_insufficient_resources_do_not_mutate_state(engine) -> None:
@@ -86,7 +85,6 @@ def test_insufficient_resources_do_not_mutate_state(engine) -> None:
     assert engine.state.plots[0].is_empty
 
     with pytest.raises(ValueError, match="No raw beans"):
-        engine.state.owned_upgrades["roaster_slot"] = 1
         engine.start_roast("bourbon", ["vanilla"], "medium")
     assert engine.state.roast_batches == []
 
@@ -113,7 +111,7 @@ def test_upgrade_effects_and_persistence(tmp_path) -> None:
 
     assert restored.to_dict() == json.loads((tmp_path / "state.json").read_text())
     assert restored_engine.max_ingredients() == 1
-    assert restored_engine.max_roast_slots() == 1
+    assert restored_engine.max_roast_slots() == 2
     assert len(restored.plots) == 6
 
 
@@ -126,8 +124,7 @@ def test_persistence_preserves_active_processes_and_discovered_recipes(tmp_path)
         clock=clock,
         store=store,
     )
-    engine.state.gold = 2000
-    engine.purchase_upgrade("roaster_slot")
+    engine.state.gold = 30
     engine.buy_seed("bourbon")
     engine.plant(0, "bourbon")
     engine.state.raw_bean_inventory["bourbon"] = 1
@@ -172,8 +169,7 @@ def test_saved_state_has_stable_top_level_schema(tmp_path) -> None:
 
 
 def test_debug_time_advancement_rewinds_all_active_processes(engine) -> None:
-    engine.state.gold = 2000
-    engine.purchase_upgrade("roaster_slot")
+    engine.state.gold = 30
     engine.buy_seed("bourbon")
     engine.plant(0, "bourbon")
     engine.state.raw_bean_inventory["bourbon"] = 1

@@ -22,7 +22,7 @@
   "roaster_slot": {
     "id": "roaster_slot",
     "name": "Roaster",
-    "description": "Build a roaster to start roasting beans. Further tiers add another roaster to run at once.",
+    "description": "Add another roaster slot. The farm starts with one basic roaster.",
     "tiers": [
       {"cost": 1000, "slots_added": 1},
       {"cost": 3200, "slots_added": 1}

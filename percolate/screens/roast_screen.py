@@ -76,6 +76,8 @@ class RoastScreen(Screen):
         ("s", "start_roast", "Start Roast"),
         ("c", "collect_ready", "Collect"),
         ("u", "show_upgrades", "Upgrades"),
+        ("left", "focus_previous_builder", "Previous field"),
+        ("right", "focus_next_builder", "Next field"),
     ]
 
     def compose(self) -> ComposeResult:
@@ -86,7 +88,7 @@ class RoastScreen(Screen):
                 # Same reasoning as MarketScreen's hint (see market_screen.py):
                 # the builder panel's 4 fields rely on Textual's default
                 # Tab-cycling focus, which isn't obvious to a non-dev player.
-                yield Static("(tab) next field   (shift+tab) previous", classes="section-hint")
+                yield Static("(tab or ←/→) move fields   (enter) choose", classes="section-hint")
                 yield Label("Bean", classes="builder-heading")
                 yield FocusHighlightOptionList(id="bean_list")
                 yield Label("Flavor", id="flavor_heading", classes="builder-heading")
@@ -109,7 +111,7 @@ class RoastScreen(Screen):
         self._cells: list[RoastCell] = []
         self._last_state: list[str | None] = []
         self._selected_bean_id: str | None = None
-        self._selected_level: str | None = "medium"
+        self._selected_level: str | None = None
 
         self._build_field()
         self.refresh_builder()
@@ -136,6 +138,25 @@ class RoastScreen(Screen):
         # list. See playtest_notes.md.
         if event.widget.id in ("bean_list", "level_list"):
             self._sync_selection_highlight(event.widget.id)
+
+    def _builder_fields(self) -> list:
+        return [
+            self.query_one("#bean_list", OptionList),
+            self.query_one("#flavor_list", SelectionList),
+            self.query_one("#level_list", OptionList),
+        ]
+
+    def _move_builder_focus(self, direction: int) -> None:
+        fields = self._builder_fields()
+        focused = next((index for index, field in enumerate(fields) if field.has_focus), 0)
+        target = (focused + direction) % len(fields)
+        self.set_focus(fields[target])
+
+    def action_focus_previous_builder(self) -> None:
+        self._move_builder_focus(-1)
+
+    def action_focus_next_builder(self) -> None:
+        self._move_builder_focus(1)
 
     # --- Builder (left panel) -------------------------------------------
 
@@ -254,7 +275,7 @@ class RoastScreen(Screen):
             return
         capacity = engine.max_roast_slots()
         if capacity == 0:
-            self.notify("No roaster yet — buy one from Upgrades (u).", severity="warning")
+            self.notify("No available roaster slot.", severity="warning")
             return
         if len(farm.roast_batches) >= capacity:
             self.notify("All roaster slots are busy.", severity="warning")
@@ -297,7 +318,7 @@ class RoastScreen(Screen):
         if count == 0:
             self._cells = []
             self._last_state = []
-            grid.mount(Static("No roaster yet.\n\n(u) Upgrades to build one.", id="no_roaster"))
+            grid.mount(Static("No available roaster slot.", id="no_roaster"))
             return
 
         self._cells = [RoastCell(i, "", classes="roast-cell") for i in range(count)]

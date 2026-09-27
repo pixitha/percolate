@@ -9,6 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from percolate.content.catalog import ContentCatalog
+from percolate.config import DEFAULT_ROAST_SLOTS
 from percolate.engine.clock import Clock, SystemClock
 from percolate.engine.state import GameState, RoastedProduct
 from percolate.models.roast import DEFAULT_ROAST_DURATION, RoastBatch, resolve_roast
@@ -71,6 +72,27 @@ class GameEngine:
         self.state.location_selected = True
         self.state.weather_id = self.location.weather_ids[0]
         self.state.weather_started_at = self.now
+
+    def set_weather(self, weather_id: str) -> None:
+        """Set the active weather, provided it belongs to this location."""
+        if weather_id not in self.content.weather:
+            raise ValueError(f"Unknown weather: {weather_id}")
+        if weather_id not in self.location.weather_ids:
+            raise ValueError(f"Weather {weather_id!r} is not available in {self.location.name}")
+        self.state.weather_id = weather_id
+        self.state.weather_started_at = self.now
+
+    def cycle_location(self, direction: int = 1) -> None:
+        """Move to the next or previous bundled location."""
+        location_ids = list(self.content.locations)
+        current = location_ids.index(self.state.location_id)
+        self.set_location(location_ids[(current + direction) % len(location_ids)])
+
+    def cycle_weather(self, direction: int = 1) -> None:
+        """Move to the next or previous weather in the current location."""
+        weather_ids = self.location.weather_ids
+        current = weather_ids.index(self.state.weather_id) if self.state.weather_id in weather_ids else -1
+        self.set_weather(weather_ids[(current + direction) % len(weather_ids)])
 
     @property
     def weather(self):
@@ -148,7 +170,7 @@ class GameEngine:
     def max_roast_slots(self) -> int:
         tier = self.upgrade_tier("roaster_slot")
         tiers = self.content.upgrades.get("roaster_slot", {}).get("tiers", [])
-        return sum(item.get("slots_added", 0) for item in tiers[:tier])
+        return DEFAULT_ROAST_SLOTS + sum(item.get("slots_added", 0) for item in tiers[:tier])
 
     def buy_seed(self, bean_id: str, quantity: int = 1) -> None:
         self._validate_quantity(quantity)

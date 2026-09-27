@@ -19,7 +19,7 @@ from textual.screen import Screen
 from textual.widgets import Header, Label, ListItem, ListView, Static
 
 from percolate.focus_widgets import FocusHighlightListView
-from percolate.widgets import NAV_HINT
+from percolate.widgets import NAV_HINT, format_remaining
 
 
 class MarketScreen(Screen):
@@ -57,6 +57,10 @@ class MarketScreen(Screen):
         await self.refresh_market()
 
     async def refresh_market(self) -> None:
+        # The estimate should reflect the climate the player would plant in
+        # right now, including a weather change that occurred while another
+        # screen was open.
+        self.app.engine.refresh_weather()
         farm = self.app.engine.state
         beans = self.app.engine.content.beans
         ingredients = self.app.engine.content.ingredients
@@ -71,7 +75,9 @@ class MarketScreen(Screen):
             ListItem(
                 Label(
                     f"{beans[bean_id].name} (own {farm.seed_inventory.get(bean_id, 0)}) "
-                    f"— buy for {beans[bean_id].seed_cost}g"
+                    f"— buy for {beans[bean_id].seed_cost}g · "
+                    f"grow {format_remaining(beans[bean_id].growth_time)} base / "
+                    f"{format_remaining(beans[bean_id].growth_time * (1 - self.app.engine.growth_speed_bonus_for(bean_id)))} here"
                 )
             )
             for bean_id in self._buy_seed_ids

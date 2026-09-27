@@ -19,7 +19,7 @@ Grab the latest build for your OS from the [Releases](../../releases) page — n
 | `h` | Help |
 | `q` | Quit (saves automatically) |
 
-Control hints are shown inline, next to whatever they act on — e.g. the selected plot shows `(enter) plant`, a finished roast shows `(c)`, and the Farm and Roasting screens show `(u) Upgrades`. `u` opens a contextual upgrade shop for that screen (Farm Upgrades vs. Roaster Upgrades). On the Market screen, Tab moves focus between the four buy/sell lists and Enter acts on the highlighted row.
+Control hints are shown inline, next to whatever they act on — e.g. the selected plot shows `(enter) plant`, a finished roast shows `(c)`, and the Farm and Roasting screens show `(u) Upgrades`. `u` opens a contextual upgrade shop for that screen (Farm Upgrades vs. Roaster Upgrades). On the Market screen, Tab moves focus between the four buy/sell lists and Enter acts on the highlighted row. On the Roast screen, Tab or left/right moves between Bean, Flavor, and Roast Level; up/down moves within a list and Enter confirms a choice.
 
 Progress is saved to `~/.config/percolate/state.json` after every action.
 
@@ -27,7 +27,7 @@ Progress is saved to `~/.config/percolate/state.json` after every action.
 
 1. **Buy seeds** at the Market with starting gold.
 2. **Plant and grow** them on the Farm screen — Caturra is ready in about 30 minutes, while later varieties support longer check-ins and overnight growing.
-3. **Harvest and sell raw beans**, or save up for the Roaster upgrade to unlock roasting.
+3. **Harvest and sell raw beans**, or roast them in the basic roaster you start with.
 4. **Roast** harvested beans — choose a bean, optional flavor ingredients, and a roast level; Discover curated combinations and you'll earn a bonus over their base value.
 5. **Sell roasted product** at the Market for more than raw beans, and reinvest in upgrades (more plots, faster growth, more roast slots, more flavor slots).
 
@@ -73,7 +73,7 @@ Upgrades are purchased from the contextual shop on the Farm or Roasting screen:
 
 - **Plot Expansion** adds planting plots and unlocks Catimor and SL28.
 - **Soil Quality** speeds up new plantings and unlocks Robusta.
-- **Roaster** unlocks roasting; its second tier adds another simultaneous roast slot and unlocks Geisha.
+- **Roaster** adds another simultaneous roast slot and unlocks Geisha at tier one.
 - **Roaster Efficiency** shortens roast times.
 - **Infuser** unlocks flavor ingredients, then increases the number of flavors allowed in a roast; its first tier unlocks Liberica.
 
@@ -124,6 +124,8 @@ Set `PERCOLATE_DEV=1` before launching to enable testing shortcuts (off by defau
 | `[` | Skip forward 15 minutes |
 | `]` | Skip forward 6 hours |
 | `g` | +1000 gold |
+| `l` / `Shift+L` | Next / previous location |
+| `w` / `Shift+W` | Next / previous weather in the current location |
 
 These rewind timer start times rather than touching the system clock, so they only affect Percolate's own state.
 

@@ -84,8 +84,43 @@ def test_engine_location_resets_weather_to_that_region_cycle(engine) -> None:
     assert engine.state.weather_started_at == engine.now
 
 
-def test_engine_requires_a_roaster_slot_before_starting_roast(engine) -> None:
+def test_engine_can_set_and_cycle_weather_for_current_location(engine) -> None:
+    engine.set_weather("drizzle")
+    assert engine.weather.id == "drizzle"
+    assert engine.state.weather_started_at == engine.now
+
+    engine.cycle_weather()
+    assert engine.weather.id == "cool_snap"
+    engine.cycle_weather(-1)
+    assert engine.weather.id == "drizzle"
+
+    with pytest.raises(ValueError, match="not available"):
+        engine.set_weather("storm")
+
+
+def test_engine_can_cycle_locations(engine) -> None:
+    starting_location = engine.location.id
+
+    engine.cycle_location()
+    assert engine.location.id != starting_location
+    assert engine.weather.id == "clear"
+
+    engine.cycle_location(-1)
+    assert engine.location.id == starting_location
+
+
+def test_engine_starts_with_one_basic_roaster_slot(engine) -> None:
     engine.state.raw_bean_inventory["bourbon"] = 1
+
+    engine.start_roast("bourbon", [], "medium")
+
+    assert len(engine.state.roast_batches) == 1
+    assert engine.state.raw_bean_inventory["bourbon"] == 0
+
+
+def test_engine_blocks_a_roast_when_the_basic_slot_is_busy(engine) -> None:
+    engine.state.raw_bean_inventory["bourbon"] = 2
+    engine.start_roast("bourbon", [], "medium")
 
     with pytest.raises(ValueError, match="roaster slot"):
         engine.start_roast("bourbon", [], "medium")
@@ -181,7 +216,6 @@ def test_engine_save_uses_injected_store(engine, tmp_path) -> None:
 
 def test_engine_runs_complete_grow_roast_sell_loop(engine) -> None:
     engine.state.gold = 10_000
-    engine.purchase_upgrade("roaster_slot")
     engine.buy_seed("bourbon")
     engine.plant(0, "bourbon")
 
@@ -197,7 +231,7 @@ def test_engine_runs_complete_grow_roast_sell_loop(engine) -> None:
     assert product.recipe_id == "bourbon_reserve"
     assert engine.state.roast_batches == []
     assert engine.state.roasted_inventory == []
-    assert engine.state.gold == 9098
+    assert engine.state.gold == 10098
 
 
 def test_engine_persists_active_weather_state(engine, tmp_path) -> None:

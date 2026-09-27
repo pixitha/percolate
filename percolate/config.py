@@ -42,6 +42,8 @@ HELP_GUIDE_PATH = DATA_DIR / "help_guide.md"
 # loop; no roaster yet — that's the first thing to save up for.
 DEFAULT_STARTING_GOLD = 30
 DEFAULT_PLOT_COUNT = 3
+DEFAULT_ROAST_SLOTS = 1
+WEATHER_ANIMATION_TICK_SECONDS = 0.75
 DEFAULT_UNLOCKED_BEANS = {"typica", "caturra", "bourbon", "yirgacheffe"}
 DEFAULT_LOCATION_ID = "highland_estate"
 

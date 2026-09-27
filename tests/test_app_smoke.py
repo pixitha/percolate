@@ -91,6 +91,21 @@ def test_market_enter_buys_one_seed(monkeypatch) -> None:
     _run_app(monkeypatch, scenario)
 
 
+def test_market_seed_listing_shows_base_and_current_grow_times(monkeypatch) -> None:
+    async def scenario(pilot) -> None:
+        app = pilot.app
+        await pilot.press("m")
+        market = app.screen
+        buy_seeds = market.query_one("#buy_seeds", ListView)
+        first_listing = buy_seeds.children[0].query_one("Label")
+
+        listing = str(first_listing.render())
+        assert "grow 45m base /" in listing
+        assert "here" in listing
+
+    _run_app(monkeypatch, scenario)
+
+
 def test_farm_upgrade_modal_can_purchase_plot_expansion(monkeypatch) -> None:
     async def scenario(pilot) -> None:
         app = pilot.app
@@ -122,5 +137,31 @@ def test_roast_screen_builder_has_expected_controls(monkeypatch) -> None:
         assert roast.query_one("#level_list", OptionList)
         assert roast.query_one("#start_button")
         assert roast.query_one("#recipe_list")
+
+    _run_app(monkeypatch, scenario)
+
+
+def test_roast_builder_supports_arrow_field_navigation_and_requires_level(monkeypatch) -> None:
+    async def scenario(pilot) -> None:
+        app = pilot.app
+        app.engine.state.raw_bean_inventory["bourbon"] = 1
+        await pilot.press("r")
+        roast = app.screen
+        bean_list = roast.query_one("#bean_list", OptionList)
+        flavor_list = roast.query_one("#flavor_list")
+        level_list = roast.query_one("#level_list", OptionList)
+
+        assert bean_list.has_focus
+        await pilot.press("right")
+        assert flavor_list.has_focus
+        await pilot.press("right")
+        assert level_list.has_focus
+
+        await pilot.press("s")
+        assert app.engine.state.roast_batches == []
+
+        await pilot.press("enter")
+        await pilot.press("s")
+        assert app.engine.state.roast_batches[0].roast_level == "light"
 
     _run_app(monkeypatch, scenario)
